@@ -1,8 +1,6 @@
 import anime from "animejs";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 
 /**
  * Base
@@ -17,10 +15,6 @@ const scene = new THREE.Scene();
 /**
  * Objects
  */
-
-// TODO: a commenter
-// const axesHelper = new THREE.AxesHelper();
-// scene.add(axesHelper);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambientLight);
@@ -75,7 +69,6 @@ function loadTextures(texturesRootName) {
 
   return Object.fromEntries(
     Object.entries(texturesToLoad).map(([textureKey, texture]) => {
-      console.log(texture.repeat);
       return [textureKey, texture];
     })
   );
@@ -98,7 +91,7 @@ const wallMaterial = new THREE.MeshStandardMaterial({
  * floor
  */
 
-const floor = new THREE.Mesh(new THREE.BoxGeometry(17, 0.1, 10), floorMaterial);
+const floor = new THREE.Mesh(new THREE.BoxGeometry(34, 0.1, 20), floorMaterial);
 scene.add(floor);
 floor.position.set(0, -0.5, 0);
 
@@ -106,36 +99,44 @@ floor.position.set(0, -0.5, 0);
  * wall
  */
 
-const wall1 = new THREE.Mesh(new THREE.BoxGeometry(1, 5, 10), wallMaterial);
-scene.add(wall1);
-wall1.position.set(7, -0.5, 0);
+const wallX = 12;
+const wallY = -0.5;
+const wallZ = 0;
 
-const wall2 = new THREE.Mesh(new THREE.BoxGeometry(1, 5, 10), wallMaterial);
+const wall1 = new THREE.Mesh(new THREE.BoxGeometry(1, 15, 20), wallMaterial);
+scene.add(wall1);
+wall1.position.set(wallX, wallY, wallZ);
+
+const wall2 = new THREE.Mesh(new THREE.BoxGeometry(1, 15, 20), wallMaterial);
 scene.add(wall2);
-wall2.position.set(-7, -0.5, 0);
+wall2.position.set(-wallX, wallY, wallZ);
 
 /**
  * raquette
  */
 
+const raquetteX = 8;
+const raquetteY = 0.5;
+const raquetteZ = 0;
+
 const raquette1 = new THREE.Mesh(
-  new THREE.BoxGeometry(0.5, 1, 3),
+  new THREE.BoxGeometry(0.1, 1, 3),
   new THREE.MeshBasicMaterial({
     color: 0xbb0000,
   })
 );
 
 scene.add(raquette1);
-raquette1.position.set(-3, 0.5, 0);
+raquette1.position.set(-raquetteX, raquetteY, raquetteZ);
 
 const raquette2 = new THREE.Mesh(
-  new THREE.BoxGeometry(0.5, 1, 3),
+  new THREE.BoxGeometry(0.1, 1, 3),
   new THREE.MeshBasicMaterial({
     color: 0xbb0000,
   })
 );
 scene.add(raquette2);
-raquette2.position.set(3, 0.5, 0);
+raquette2.position.set(raquetteX, raquetteY, raquetteZ);
 
 /**
  * ball
@@ -179,7 +180,7 @@ const camera = new THREE.PerspectiveCamera(
   100
 );
 camera.position.x = 0;
-camera.position.y = 5;
+camera.position.y = 10;
 camera.position.z = 0;
 scene.add(camera);
 
@@ -213,9 +214,105 @@ canvas.addEventListener("mousemove", (evt) => {
   cursor.y = -(evt.clientY / sizes.height) * 2 + 1;
 });
 
+/**
+ * keyboard
+ */
+
+const paddleSpeed = 0.3;
+const keys = {
+  ArrowUp: false,
+  ArrowDown: false,
+  z: false,
+  s: false,
+};
+
+window.addEventListener("keydown", (event) => {
+  if (event.key in keys) {
+    keys[event.key] = true;
+  }
+});
+
+window.addEventListener("keyup", (event) => {
+  if (event.key in keys) {
+    keys[event.key] = false;
+  }
+});
+
+const ballSpeed = { x: 0.1, y: 0.1, z: 0 };
+let point1 = 0;
+let point2 = 0;
+
+console.log("score :", point1, "-", point2);
+
 const tick = () => {
   // Update controls
   controls.update();
+
+  if (keys.ArrowUp) {
+    if (!(raquette2.position.z <= -6)) {
+      raquette2.position.z -= paddleSpeed;
+    }
+  }
+  if (keys.ArrowDown) {
+    if (!(raquette2.position.z > 6)) {
+      raquette2.position.z += paddleSpeed;
+    }
+  }
+  if (keys.z) {
+    if (!(raquette1.position.z <= -6)) {
+      raquette1.position.z -= paddleSpeed;
+    }
+  }
+  if (keys.s) {
+    if (!(raquette1.position.z > 6)) {
+      raquette1.position.z += paddleSpeed;
+    }
+  }
+
+  // Move ball
+  ball.position.x += ballSpeed.x;
+  ball.position.z += ballSpeed.z;
+
+  // Check for collisions with walls
+  if (ball.position.z >= wallX - 5 || ball.position.z <= -wallX + 5) {
+    ballSpeed.z = -ballSpeed.z;
+  }
+
+  /**
+   * points
+   */
+
+  if (ball.position.x >= wallX) {
+    point1 += 1;
+    console.log("point pour joueur 1", point1, "-", point2);
+    ball.position.x = 0;
+    ballSpeed.z = 0;
+  }
+  if (ball.position.x <= -wallX) {
+    point2 += 1;
+    console.log("point pour joueur 2", point1, "-", point2);
+    ball.position.x = 0;
+    ballSpeed.z = 0;
+  }
+
+  /**
+   * raquette balle physique
+   */
+  if (
+    (ball.position.x <= raquette1.position.x + 0.25 &&
+      ball.position.x >= raquette1.position.x - 0.25 &&
+      ball.position.z <= raquette1.position.z + 1.5 &&
+      ball.position.z >= raquette1.position.z - 1.5) ||
+    (ball.position.x <= raquette2.position.x + 0.25 &&
+      ball.position.x >= raquette2.position.x - 0.25 &&
+      ball.position.z <= raquette2.position.z + 1.5 &&
+      ball.position.z >= raquette2.position.z - 1.5)
+  ) {
+    // Check for collisions with paddles
+    ballSpeed.x = -ballSpeed.x;
+    // rajouter un mouvement de hauteur a la balle
+    ballSpeed.z = Math.random() * 0.1;
+  }
 
   // Render
   renderer.render(scene, camera);
