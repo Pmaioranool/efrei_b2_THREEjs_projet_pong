@@ -1,6 +1,8 @@
 import anime from "animejs";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
+import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 
 /**
  * Base
@@ -244,6 +246,10 @@ let point2 = 0;
 
 console.log("score :", point1, "-", point2);
 
+/**
+ * score
+ */
+
 const tick = () => {
   // Update controls
   controls.update();
@@ -287,14 +293,40 @@ const tick = () => {
     console.log("point pour joueur 1", point1, "-", point2);
     ball.position.x = 0;
     ballSpeed.z = 0;
+    scene.remove(textMesh);
   }
   if (ball.position.x <= -wallX) {
     point2 += 1;
     console.log("point pour joueur 2", point1, "-", point2);
     ball.position.x = 0;
     ballSpeed.z = 0;
+    scene.remove(textMesh);
   }
+  let score = `score : ${point1} "-" ${point2}`;
 
+  const loader = new FontLoader();
+  loader.load(
+    "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
+    function (font) {
+      const textGeometry = new TextGeometry(score, {
+        font: font,
+        size: 1,
+        height: 0.2,
+        curveSegments: 12,
+        bevelEnabled: true,
+        bevelThickness: 0.03,
+        bevelSize: 0.02,
+        bevelOffset: 0,
+        bevelSegments: 5,
+      });
+
+      const textMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+      const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+
+      textMesh.position.set(-5, 2, 0); // Adjust the position as needed
+      scene.add(textMesh);
+    }
+  );
   /**
    * raquette balle physique
    */
