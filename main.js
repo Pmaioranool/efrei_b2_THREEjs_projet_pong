@@ -323,8 +323,9 @@ const tick = () => {
       const textMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
       const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
-      textMesh.position.set(-5, 2, 0); // Adjust the position as needed
+      textMesh.position.set(-4, 2, -5); // Adjust the position as needed
       scene.add(textMesh);
+      textMesh.rotation.x = -Math.PI / 2;
     }
   );
   /**
