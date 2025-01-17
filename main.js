@@ -294,6 +294,7 @@ const tick = () => {
     ball.position.x = 0;
     ballSpeed.z = 0;
     scene.remove(textMesh);
+    textMesh.dispose();
   }
   if (ball.position.x <= -wallX) {
     point2 += 1;
@@ -301,8 +302,9 @@ const tick = () => {
     ball.position.x = 0;
     ballSpeed.z = 0;
     scene.remove(textMesh);
+    textMesh.dispose();
   }
-  let score = `score : ${point1} "-" ${point2}`;
+  let score = `score : ${point1} - ${point2}`;
 
   const loader = new FontLoader();
   loader.load(
@@ -320,7 +322,7 @@ const tick = () => {
         bevelSegments: 5,
       });
 
-      const textMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+      const textMaterial = new THREE.MeshBasicMaterial({ color: 0xf4f4f4 });
       const textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
       textMesh.position.set(-4, 2, -5); // Adjust the position as needed
