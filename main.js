@@ -288,24 +288,8 @@ const tick = () => {
    * points
    */
 
-  if (ball.position.x >= wallX) {
-    point1 += 1;
-    console.log("point pour joueur 1", point1, "-", point2);
-    ball.position.x = 0;
-    ballSpeed.z = 0;
-    scene.remove(textMesh);
-    textMesh.dispose();
-  }
-  if (ball.position.x <= -wallX) {
-    point2 += 1;
-    console.log("point pour joueur 2", point1, "-", point2);
-    ball.position.x = 0;
-    ballSpeed.z = 0;
-    scene.remove(textMesh);
-    textMesh.dispose();
-  }
   let score = `score : ${point1} - ${point2}`;
-
+  let textMesh = null;
   const loader = new FontLoader();
   loader.load(
     "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
@@ -323,13 +307,38 @@ const tick = () => {
       });
 
       const textMaterial = new THREE.MeshBasicMaterial({ color: 0xf4f4f4 });
-      const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+      textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
       textMesh.position.set(-4, 2, -5); // Adjust the position as needed
       scene.add(textMesh);
       textMesh.rotation.x = -Math.PI / 2;
     }
   );
+
+  if (ball.position.x >= wallX) {
+    point1 += 1;
+    console.log("point pour joueur 1", point1, "-", point2);
+    ball.position.x = 0;
+    ballSpeed.z = 0;
+    if (textMesh != null) {
+      scene.remove(textMesh);
+      textMesh.geometry.dispose();
+      textMesh.material.dispose();
+      textMesh = null;
+    }
+  }
+  if (ball.position.x <= -wallX) {
+    point2 += 1;
+    console.log("point pour joueur 2", point1, "-", point2);
+    ball.position.x = 0;
+    ballSpeed.z = 0;
+    if (textMesh != null) {
+      scene.remove(textMesh);
+      textMesh.geometry.dispose();
+      textMesh.material.dispose();
+      textMesh = null;
+    }
+  }
   /**
    * raquette balle physique
    */
